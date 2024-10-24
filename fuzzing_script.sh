@@ -1,0 +1,1 @@
+for i in `cat target.txt`; do ffuf -r -mc 200,300-399 -ac -c -e all -w /root/Tools/SecLists/Discovery/Web-Content/directory-list-2.3-big.txt -u $i/FUZZ -recursion -recursion-depth 6 -H 'User-Agent: BBP-AIASG-{ch1k3n}';done
