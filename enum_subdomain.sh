@@ -170,8 +170,18 @@ case $option in
     ;;
 esac
 
-# Combine and sort the results (if applicable)
-if [[ -f "ffufsubdomain.txt" || -f "crt_subdomain.txt" || -f "asset_subdomain.txt" || -f "subfinder_subdomain.txt" || -f "amass_subdomain.txt" || -f "amass_subdomin.txt" ]]; then
+# Create a list of the subdomain files that exist
+files=""
+for file in "ffufsubdomain.txt" "crt_subdomain.txt" "asset_subdomain.txt" "subfinder_subdomain.txt" "amass_subdomain.txt" "amass_subdomin.txt"; do
+  if [[ -f "$file" ]]; then
+    files="$files $file"
+  fi
+done
+
+# If any files exist, combine and sort them
+if [[ -n "$files" ]]; then
   echo "Combining and sorting the final subdomain list"
-  sort asset_subdomain.txt ffufsubdomain.txt crt_subdomain.txt subfinder_subdomain.txt amass_subdomain.txt amass_subdomin.txt 2>/dev/null | uniq > all_subdomain.txt
+  sort $files | uniq > all_subdomain.txt
+else
+  echo "No subdomain files found, skipping combining step."
 fi
