@@ -41,7 +41,7 @@ done < "$domain_file"
 
 # Remove duplicates in the target file
 echo "Removing duplicate URLs in $target..."
-cat "$target" >> "$folder/$target
+cat "$target" >> "$folder/$target"
 cat "$folder/$target" | sort | uniq > "$folder/temp_target.txt"
 mv "$folder/temp_target.txt" "$folder/$target"
 
