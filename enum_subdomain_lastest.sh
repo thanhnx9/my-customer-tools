@@ -121,8 +121,6 @@ combine_results() {
   else
 	echo "No subdomain files found, skipping combining step."
   fi
-
-fi
 }
 
 # Menu to select options
