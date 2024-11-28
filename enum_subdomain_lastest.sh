@@ -62,12 +62,21 @@ amass_enum() {
   amass enum -passive -norecursive -noalts -df amass_subdomin_$line.txt -o amass_subdomain_$line.txt &
 }
 
+# Function to run Subdominator enumeration
+subdominator_enum() {
+  local line="$1"
+  echo "Running Subdominator enumeration for $line"
+
+  subdominator -d $line -o subdominatorsubdomain_$line.txt &
+}
+
 # Function to run all tasks except FFUF
 run_all_except_ffuf() {
   while IFS= read -r line || [[ -n "$line" ]]; do
     crt_check "$line"
     amass_enum "$line"
     assetfinder_subfinder "$line"
+    subdominator_enum "$line"
   done < "$domain_file"
   wait
 }
@@ -79,6 +88,7 @@ run_all() {
     crt_check "$line"
     amass_enum "$line"
     assetfinder_subfinder "$line"
+    subdominator_enum "$line"
   done < "$domain_file"
   wait
 }
@@ -106,20 +116,24 @@ combine_results() {
   cat amass_subdomain_* > amass_subdomain.txt
   rm -f amass_subdomain_*.txt
 
+  # Combine Subdominator subdomain files
+  cat subdominatorsubdomain_* > subdominator.txt
+  rm -f subdominatorsubdomain_*.txt
+
   # Create a list of the subdomain files that exist
   files=""
-  for file in "ffufsubdomain.txt" "crt_subdomain.txt" "asset_subdomain.txt" "subfinder_subdomain.txt" "amass_subdomain.txt" "amass_subdomin.txt"; do
-	if [[ -f "$file" ]]; then
-	files="$files $file"
-  fi
+  for file in "ffufsubdomain.txt" "crt_subdomain.txt" "asset_subdomain.txt" "subfinder_subdomain.txt" "amass_subdomain.txt" "amass_subdomin.txt" "subdominator.txt"; do
+    if [[ -f "$file" ]]; then
+      files="$files $file"
+    fi
   done
   
   # If any files exist, combine and sort them
   if [[ -n "$files" ]]; then
-	echo "Combining and sorting the final subdomain list"
-	sort $files | uniq > all_subdomain.txt
+    echo "Combining and sorting the final subdomain list"
+    sort $files | uniq > all_subdomain.txt
   else
-	echo "No subdomain files found, skipping combining step."
+    echo "No subdomain files found, skipping combining step."
   fi
 }
 
@@ -131,6 +145,7 @@ echo "3) CRT check"
 echo "4) Assetfinder + Subfinder"
 echo "5) Scan all"
 echo "6) Scan all except FFUF"
+echo "7) Subdominator enumeration"
 read -p "Enter your choice: " option
 
 # Run the appropriate function based on user input
@@ -161,8 +176,13 @@ case $option in
   6)
     run_all_except_ffuf
     ;;
+  7)
+    while IFS= read -r line || [[ -n "$line" ]]; do
+      subdominator_enum "$line"
+    done < "$domain_file"
+    ;;
   *)
-    echo "Invalid option. Please choose between 1 and 6."
+    echo "Invalid option. Please choose between 1 and 7."
     exit 1
     ;;
 esac

@@ -119,11 +119,31 @@ assetfinder_subfinder() {
   subfinder -dL "$domain_file" -o subfinder_subdomain.txt
 }
 
+# Function for Subdominator subdomain enumeration
+subdominator_enum() {
+  while IFS= read -r line || [[ -n "$line" ]]; do
+    # Skip empty lines
+    if [[ -z "$line" ]]; then
+      continue
+    fi
+
+    echo "Running Subdominator for $line"
+
+    # Run Subdominator for the domain
+    subdominator -d $line -o subdominatorsubdomain_$line.txt
+  done < "$domain_file"
+
+  # Combine Subdominator subdomain files
+  cat subdominatorsubdomain_* > subdominator_subdomain.txt
+  rm -f subdominatorsubdomain_*.txt
+}
+
 # Function to run all tasks except FFUF
 run_all_except_ffuf() {
   crt_check
   amass_enum
   assetfinder_subfinder
+  subdominator_enum
 }
 
 # Function to run all tasks
@@ -132,6 +152,7 @@ run_all() {
   crt_check
   amass_enum
   assetfinder_subfinder
+  subdominator_enum
 }
 
 # Display menu to the user
@@ -142,6 +163,7 @@ echo "3) CRT check"
 echo "4) Assetfinder + Subfinder"
 echo "5) Scan all"
 echo "6) Scan all except FFUF"
+echo "7) Subdominator enumeration"
 read -p "Enter your choice: " option
 
 # Main logic to select the option
@@ -164,21 +186,22 @@ case $option in
   6)
     run_all_except_ffuf
     ;;
+  7)
+    subdominator_enum
+    ;;
   *)
-    echo "Invalid option. Please choose between 1, 2, 3, 4, 5, or 6."
+    echo "Invalid option. Please choose between 1, 2, 3, 4, 5, 6, or 7."
     exit 1
     ;;
 esac
 
-# Create a list of the subdomain files that exist
-files=""
-for file in "ffufsubdomain.txt" "crt_subdomain.txt" "asset_subdomain.txt" "subfinder_subdomain.txt" "amass_subdomain.txt" "amass_subdomin.txt"; do
+# Combine subdomain files
+for file in "ffufsubdomain.txt" "crt_subdomain.txt" "asset_subdomain.txt" "subfinder_subdomain.txt" "amass_subdomain.txt" "amass_subdomin.txt" "subdominator_subdomain.txt"; do
   if [[ -f "$file" ]]; then
     files="$files $file"
   fi
 done
 
-# If any files exist, combine and sort them
 if [[ -n "$files" ]]; then
   echo "Combining and sorting the final subdomain list"
   sort $files | uniq > all_subdomain.txt
