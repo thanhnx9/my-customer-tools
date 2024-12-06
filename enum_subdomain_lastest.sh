@@ -58,7 +58,7 @@ amass_enum() {
   local line="$1"
   echo "Running Amass enumeration for $line"
 
-  amass enum -d $line -o amass_subdomin_$line.txt &
+  amass enum -passive -norecursive -noalts -d $line -o amass_subdomin_$line.txt &
   amass enum -passive -norecursive -noalts -df amass_subdomin_$line.txt -o amass_subdomain_$line.txt &
 }
 
